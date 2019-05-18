@@ -3,16 +3,19 @@ const Fortnite = require("fortnite-api");
 const Discord = require('discord.js');
 
 const client = new Discord.Client();
-const result = require('dotenv').config();
+
+if (process.argv.length === 2) {
+    const result = require('dotenv').config();
+
+    if (result.error) {
+        console.log(result.error);
+        writeToFile(result.error);
+        process.exit(1);
+    }
+}
 
 let logged_in_discord = false;
 let channel;
-
-if (result.error) {
-    console.log(result.error);
-    writeToFile(result.error);
-    process.exit(1);
-}
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`)
