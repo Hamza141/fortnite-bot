@@ -128,7 +128,7 @@ function postMessage(username, win, kills) {
         if (win != null) {
             title = 'Random message about win';
             description = '[' + kills[0] + '] ' + username + ' just won and got ' + kills[1] + ' kills!';
-        } else if (kills != null && kills[1] >= 3) {
+        } else if (kills != null && kills[1] >= kills[2] * 3) {
             title = 'Random message about kills';
             description = '[' + kills[0] + '] ' + username + ' just got ' + kills[1] + ' kills!';
         }
