@@ -64,7 +64,7 @@ let cache = loadCache();
 writeToFile(cache);
 
 fortniteAPI.login().then(() => {
-    setInterval(getMatchDate, Object.keys(players).length * 2000);
+    setInterval(getMatchDate, getInterval());
 }).catch(err => {
     console.log(err);
 });
@@ -74,6 +74,16 @@ function getTimestamp() {
     return new Date().toLocaleString("en-US", {timeZone: "America/New_York"});
 }
 
+function getInterval() {
+    const num = Object.keys(players).length;
+    if (num <= 2) {
+        return 4000;
+    }
+    if (num < 5) {
+        return num * 2000;
+    }
+    return 10000;
+}
 
 function getMatchDate() {
     for (const [username, platform] of Object.entries(players)) {
@@ -97,13 +107,15 @@ function updateCache(username, stats) {
     let posted = false;
     if (username in cache) {
         posted = postMessage(username, compareWins(username, stats), compareKills(username, stats));
-    }
+        if (posted) {
+            cache[username] = stats;
+            dumpCache();
 
-    if (posted) {
+            writeToFile({username: stats});
+        }
+    } else {
         cache[username] = stats;
         dumpCache();
-
-        writeToFile({username: stats});
     }
 }
 
