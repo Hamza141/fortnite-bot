@@ -11,6 +11,7 @@ let channel;
 if (result.error) {
     console.log(result.error);
     writeToFile(result.error);
+    process.exit(1);
 }
 
 client.on('ready', () => {
