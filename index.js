@@ -104,10 +104,13 @@ function updateCache(username, stats) {
         return;
     }
 
-    let posted = false;
+    let stats_updated = false;
     if (username in cache) {
-        posted = postMessage(username, compareWins(username, stats), compareKills(username, stats));
-        if (posted) {
+        const wins = compareWins(username, stats);
+        const kills = compareKills(username, stats);
+        stats_updated = sendMessage(username, wins, kills);
+
+        if (stats_updated) {
             cache[username] = stats;
             dumpCache();
 
@@ -120,7 +123,7 @@ function updateCache(username, stats) {
 }
 
 
-function postMessage(username, win, kills) {
+function sendMessage(username, win, kills) {
     if (logged_in_discord) {
         let title = null;
         let description = null;
@@ -145,7 +148,9 @@ function postMessage(username, win, kills) {
             console.log(getTimestamp());
             console.log(description);
             writeToFile(description);
+        }
 
+        if (win != null || kills != null) {
             return true;
         }
     }
