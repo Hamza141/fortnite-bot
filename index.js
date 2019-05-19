@@ -35,7 +35,7 @@ client.login(process.env.bot_token).then(message => {
     } else {
         logged_in_discord = true;
         // noinspection JSUnresolvedVariable
-        channel = client.channels.find(value => value.name === 'general');
+        channel = client.channels.find(value => value.id === process.env.channel_id);
     }
 }, err => {
     console.log(err);
