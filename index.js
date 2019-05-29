@@ -87,14 +87,17 @@ function getInterval() {
 
 function getMatchDate() {
     for (const [username, platform] of Object.entries(players)) {
-        fortniteAPI
-            .getStatsBR(username, platform, "weekly")
-            .then(stats => {
-                updateCache(username, stats.group);
-            })
-            .catch(err => {
-                console.log(err);
-            });
+        if (username !== undefined && username !== '' &&
+            platform !== undefined && platform !== '') {
+            fortniteAPI
+                .getStatsBR(username, platform, "weekly")
+                .then(stats => {
+                    updateCache(username, stats.group);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+        }
     }
 }
 
