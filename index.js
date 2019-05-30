@@ -23,7 +23,7 @@ client.on('ready', () => {
 
 client.on('message', msg => {
     if (msg.content === 'ping') {
-        msg.reply('Pong!')
+        msg.reply('Pong!').then();
     }
 });
 
@@ -50,21 +50,21 @@ const fortnite_credentials = [
 let fortniteAPI = new Fortnite(fortnite_credentials);
 
 
-const players = {
-    'Hamza141': 'pc',
-    'owasim3': 'pc',
-    'Isildur1996': 'pc',
-    'Shaz2526': 'ps4',
-    // 'Ninja': 'pc',
-    // 'Tfue': 'pc'
-};
+const players = [
+    ['Hamza141', 'pc'],
+    ['owasim3', 'pc'],
+    ['Isildur1996', 'pc'],
+    ['Shaz2526', 'ps4'],
+    // ['Ninja', 'pc'],
+    // ['Tfue', 'pc']
+];
 
 
 let cache = loadCache();
 writeToFile(cache);
 
 fortniteAPI.login().then(() => {
-    setInterval(getMatchDate, getInterval());
+    setInterval(getMatchDate, 2500);
 }).catch(err => {
     console.log(err);
 });
@@ -85,20 +85,25 @@ function getInterval() {
     return 10000;
 }
 
+let current_index = 0;
+const num_players = players.length;
+
 function getMatchDate() {
-    for (const [username, platform] of Object.entries(players)) {
-        if (username !== undefined && username !== '' &&
-            platform !== undefined && platform !== '') {
-            fortniteAPI
-                .getStatsBR(username, platform, "weekly")
-                .then(stats => {
-                    updateCache(username, stats.group);
-                })
-                .catch(err => {
-                    console.log(err);
-                });
-        }
-    }
+    const player = players[current_index];
+    const username = player[0];
+    const platform = player[1];
+
+    // todo wait for response before sending new request
+    fortniteAPI
+        .getStatsBR(username, platform, "weekly")
+        .then(stats => {
+            updateCache(username, stats.group);
+        })
+        .catch(err => {
+            console.log([getTimestamp(), err, username, platform]);
+        });
+
+    current_index = (current_index + 1) % num_players;
 }
 
 
@@ -116,7 +121,6 @@ function updateCache(username, stats) {
         if (stats_updated) {
             cache[username] = stats;
             dumpCache();
-
             writeToFile({username: stats});
         }
     } else {
@@ -131,17 +135,21 @@ function sendMessage(username, win, kills) {
         let title = null;
         let description = null;
 
-        if (win != null) {
+        if (win !== null) {
             title = 'Random message about win';
-            description = '[' + kills[0] + '] ' + username + ' just won and got ' + kills[1] + ' kills!';
+            if (kills === null) {
+                description = '[' + win + '] ' + username + ' just won WITHOUT any kills!';
+            } else {
+                description = '[' + kills[0] + '] ' + username + ' just won and got ' + kills[1] + ' kills!';
+            }
         } else if (kills != null && kills[1] >= kills[2] * 3) {
             title = 'Random message about kills';
             description = '[' + kills[0] + '] ' + username + ' just got ' + kills[1] + ' kills!';
         }
 
-        if (description != null) {
+        if (description !== null) {
             const embed = new Discord.RichEmbed();
-            if (kills[2] !== 1) {
+            if (kills !== null && kills[2] !== 1) {
                 description += ' (in ' + kills[2] + ' matches - this shouldn\'t happen)'
             }
             embed.setTitle(title)
@@ -183,6 +191,7 @@ function compareKills(username, stats) {
     } else if (old_stats.squad.kills < stats.squad.kills) {
         return ['squad', stats.squad.kills - old_stats.squad.kills, stats.squad.matches - old_stats.squad.matches];
     }
+    // todo don't return null
     return null;
 }
 
