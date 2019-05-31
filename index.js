@@ -62,12 +62,27 @@ const players = [
 
 let cache = loadCache();
 writeToFile(cache);
+let intervalID;
 
-fortniteAPI.login().then(() => {
-    setInterval(getMatchDate, 2500);
-}).catch(err => {
-    console.log(err);
-});
+fortniteLogin();
+
+function fortniteLogin() {
+    fortniteAPI.login().then(() => {
+        intervalID = setInterval(getMatchDate, 2500);
+    }).catch(err => {
+        console.log(err);
+    });
+}
+
+function restartFortnite() {
+    const output = 'Restarting fortnite api';
+    console.log([getTimestamp(), output]);
+    writeToFile(output);
+
+    clearInterval(intervalID);
+    fortniteAPI.kill();
+    fortniteLogin();
+}
 
 
 function getTimestamp() {
@@ -101,6 +116,7 @@ function getMatchDate() {
         })
         .catch(err => {
             console.log([getTimestamp(), err, username, platform]);
+            restartFortnite();
         });
 
     current_index = (current_index + 1) % num_players;
