@@ -94,7 +94,13 @@ function restartFortnite() {
 
     logged_in_discord = false;
     clearInterval(intervalID);
-    fortniteAPI.kill().then(() => {
+    fortniteAPI.kill().then(message => {
+        console.log(message);
+        utils.writeToFile(message);
+        fortniteLogin();
+    }).catch(error => {
+        console.log(error);
+        utils.writeToFile(error);
         fortniteLogin();
     });
 }
