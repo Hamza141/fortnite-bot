@@ -77,8 +77,12 @@ fortniteLogin();
 
 
 function fortniteLogin() {
-    fortniteAPI.login().then(() => {
-        getMatchDate();
+    fortniteAPI.login().then(message => {
+        const output = 'Logged in to Epic servers';
+        console.log([utils.getTimestamp(), output]);
+        utils.writeToFile(output);
+
+        getMatchData();
     }).catch(error => {
         console.log(error);
         utils.writeToFile(error);
@@ -100,12 +104,12 @@ function restartFortnite() {
     }).catch(error => {
         console.log(error);
         utils.writeToFile(error);
-        fortniteLogin();
+        restartFortnite();
     });
 }
 
 
-function getMatchDate() {
+function getMatchData() {
     const player = players[current_index];
     const username = player[0];
     const platform = player[1];
@@ -115,7 +119,7 @@ function getMatchDate() {
         .then(stats => {
             processStats(username, stats.group);
             current_index = (current_index + 1) % num_players;
-            setTimeout(getMatchDate, 2500);
+            setTimeout(getMatchData, 2500);
         })
         .catch(err => {
             console.log([utils.getTimestamp(), err, username, platform]);
