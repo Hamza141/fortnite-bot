@@ -19,6 +19,7 @@ const client = new Discord.Client();
 discordLogin(client);
 
 client.on('ready', () => {
+    console.log(utils.getTimestamp());
     console.log(`Logged in as ${client.user.tag}!`)
 });
 
@@ -68,7 +69,6 @@ const players = [
 let cache = utils.loadCache();
 utils.writeToFile(cache);
 
-let intervalID;
 let current_index = 0;
 const num_players = players.length;
 
@@ -78,7 +78,7 @@ fortniteLogin();
 
 function fortniteLogin() {
     fortniteAPI.login().then(() => {
-        intervalID = setInterval(getMatchDate, 2500);
+        getMatchDate();
     }).catch(error => {
         console.log(error);
         utils.writeToFile(error);
@@ -93,7 +93,6 @@ function restartFortnite() {
     utils.writeToFile(output);
 
     logged_in_discord = false;
-    clearInterval(intervalID);
     fortniteAPI.kill().then(message => {
         console.log(message);
         utils.writeToFile(message);
@@ -111,18 +110,17 @@ function getMatchDate() {
     const username = player[0];
     const platform = player[1];
 
-    // todo wait for response before sending new request
     fortniteAPI
         .getStatsBR(username, platform, "weekly")
         .then(stats => {
             processStats(username, stats.group);
+            current_index = (current_index + 1) % num_players;
+            setTimeout(getMatchDate, 2500);
         })
         .catch(err => {
             console.log([utils.getTimestamp(), err, username, platform]);
             restartFortnite();
         });
-
-    current_index = (current_index + 1) % num_players;
 }
 
 
@@ -140,7 +138,7 @@ function processStats(username, stats) {
         if (stats_updated) {
             cache[username] = stats;
             utils.dumpCache(cache);
-            utils.writeToFile({username: stats});
+            utils.writeToFile({[username]: stats});
         }
     } else {
         cache[username] = stats;
