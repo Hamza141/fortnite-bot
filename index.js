@@ -6,7 +6,6 @@ if (process.argv.length === 2) {
     const result = require('dotenv').config();
 
     if (result.error) {
-        console.log(result.error);
         utils.writeToFile(result.error);
         process.exit(1);
     }
@@ -19,8 +18,7 @@ const client = new Discord.Client();
 discordLogin(client);
 
 client.on('ready', () => {
-    console.log(utils.getTimestamp());
-    console.log(`Logged in as ${client.user.tag}!`)
+    utils.writeToFile(`Logged in as ${client.user.tag}!`);
 });
 
 client.on('message', msg => {
@@ -34,7 +32,6 @@ function discordLogin(client) {
     client.login(process.env.bot_token).then(message => {
         if (message !== process.env.bot_token) {
             const error = 'Wrong token returned after logging in';
-            console.log(error);
             utils.writeToFile(error);
             process.exit(1);
         } else {
@@ -43,7 +40,6 @@ function discordLogin(client) {
             channel = client.channels.find(value => value.id === process.env.channel_id);
         }
     }, error => {
-        console.log(error);
         utils.writeToFile(error);
         process.exit(1);
     });
@@ -67,7 +63,7 @@ const players = [
 ];
 
 let cache = utils.loadCache();
-utils.writeToFile(cache);
+utils.writeToFile(cache, false);
 
 let current_index = 0;
 const num_players = players.length;
@@ -79,12 +75,10 @@ fortniteLogin();
 function fortniteLogin() {
     fortniteAPI.login().then(message => {
         const output = 'Logged in to Epic servers';
-        console.log([utils.getTimestamp(), output]);
         utils.writeToFile(output);
 
         getMatchData();
     }).catch(error => {
-        console.log(error);
         utils.writeToFile(error);
         process.exit(1);
     });
@@ -93,18 +87,15 @@ function fortniteLogin() {
 
 function restartFortnite() {
     const output = 'Restarting fortnite api';
-    console.log([utils.getTimestamp(), output]);
     utils.writeToFile(output);
 
     logged_in_discord = false;
     fortniteAPI.kill().then(message => {
-        console.log(message);
         utils.writeToFile(message);
         fortniteLogin();
     }).catch(error => {
-        console.log(error);
         utils.writeToFile(error);
-        restartFortnite();
+        setTimeout(restartFortnite, 5000);
     });
 }
 
@@ -121,8 +112,9 @@ function getMatchData() {
             current_index = (current_index + 1) % num_players;
             setTimeout(getMatchData, 2500);
         })
-        .catch(err => {
-            console.log([utils.getTimestamp(), err, username, platform]);
+        .catch(error => {
+            error['message'] = [error['message'], username, platform];
+            utils.writeToFile(error);
             restartFortnite();
         });
 }
@@ -177,8 +169,6 @@ function sendMessage(username, win, kills) {
                 .setColor(utils.getColor.next(username))
                 .setDescription(description);
             channel.send(embed);
-            console.log(utils.getTimestamp());
-            console.log(description);
             utils.writeToFile(description);
         }
 

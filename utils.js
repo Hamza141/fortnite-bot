@@ -1,8 +1,12 @@
 const fs = require('fs');
 
 
-function writeToFile(object) {
-    fs.appendFileSync("output.txt", getTimestamp() + " " + JSON.stringify(object, null, 2) + "\n\n\n",
+function writeToFile(object, print=true) {
+    const timestamp = getTimestamp();
+    if (print === true) {
+        console.log([timestamp, object]);
+    }
+    fs.appendFileSync("output.txt", timestamp + " " + JSON.stringify(object, null, 2) + "\n\n\n",
         function (err) {
             if (err) {
                 console.log(object);
@@ -23,8 +27,6 @@ function loadCache() {
         try {
             old_cache = JSON.parse(fs.readFileSync('cache.json', 'utf-8'));
         } catch (error) {
-            console.log(getTimestamp());
-            console.log(error);
             writeToFile(error);
             return {};
         }
